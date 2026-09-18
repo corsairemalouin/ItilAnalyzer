@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://iaa.core/schemas/pack-projet/v1.0.0",
+  "title": "PackProjet",
+  "description": "Contextualisation projet. Donnee declarative, jamais du code.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "identifiant", "version", "pack_client", "taxonomie",
+               "liste_blanche_actions", "catalogue_n2", "niveaux_autonomie"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "identifiant": { "type": "string" },
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "pack_client": { "type": "string", "description": "Pack client dont celui-ci herite. Peut durcir, jamais assouplir." },
+    "taxonomie": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["code", "libelle", "groupe_support", "niveau_cible_defaut"],
+        "properties": {
+          "code": { "type": "string" },
+          "libelle": { "type": "string" },
+          "parent": { "type": ["string", "null"] },
+          "groupe_support": { "type": "string" },
+          "niveau_cible_defaut": { "enum": ["N1", "N2", "N3"] },
+          "chemins_formulaire": { "type": "array", "items": { "type": "string" } },
+          "part_volume_estimee": { "type": "number", "minimum": 0, "maximum": 1,
+            "description": "Sous 0.03, l'autonomie est statistiquement inatteignable (R-13)." }
+        }
+      }
+    },
+    "liste_blanche_actions": {
+      "type": "array",
+      "description": "Aucune action hors de cette liste n'est executable (garde-fou absolu n.2).",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["code_action", "libelle", "reversible", "niveau_risque"],
+        "properties": {
+          "code_action": { "type": "string" },
+          "libelle": { "type": "string" },
+          "reversible": { "type": "boolean" },
+          "procedure_annulation": { "type": ["string", "null"] },
+          "niveau_risque": { "enum": ["0_aucune_ecriture", "1_commentaire", "2_reaffectation", "3_non_reversible"] },
+          "port_requis": { "enum": ["ITSMPort", "NotificationPort"] }
+        }
+      }
+    },
+    "catalogue_n2": {
+      "type": "array",
+      "items": { "type": "object", "required": ["code", "libelle"],
+                 "properties": { "code": {"type":"string"}, "libelle": {"type":"string"},
+                                 "sources_logs": {"type":"array","items":{"type":"string"}} } }
+    },
+    "niveaux_autonomie": {
+      "type": "array",
+      "description": "Niveau par couple categorie x action. Absent = niveau 0.",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["categorie", "code_action", "niveau"],
+        "properties": {
+          "categorie": { "type": "string" },
+          "code_action": { "type": "string" },
+          "niveau": { "type": "integer", "minimum": 0, "maximum": 4 },
+          "seuil_confiance": { "type": "number", "minimum": 0, "maximum": 1 },
+          "date_derniere_evaluation": { "type": "string", "format": "date" },
+          "decisions_observees": { "type": "integer", "minimum": 0 },
+          "taux_accord": { "type": "number", "minimum": 0, "maximum": 1 }
+        }
+      }
+    },
+    "mapping_etats": {
+      "type": "array",
+      "items": { "type": "object", "required": ["etat_canonique", "etat_externe", "systeme"],
+                 "properties": { "etat_canonique": {"type":"string"}, "etat_externe": {"type":"string"},
+                                 "systeme": {"type":"string"} } }
+    }
+  }
+}

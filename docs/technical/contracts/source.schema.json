@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://iaa.core/contracts/source/v1.0.0",
+  "title": "Source",
+  "description": "Citation obligatoire. Une affirmation sans source est non actionnable.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["reference", "version", "etage"],
+  "properties": {
+    "reference": { "type": "string", "minLength": 1 },
+    "version": { "type": "string", "minLength": 1 },
+    "etage": { "enum": ["indicatif", "normatif"] },
+    "extrait": { "type": "string", "maxLength": 1000 },
+    "score_pertinence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "date_publication": { "type": "string", "format": "date" },
+    "date_expiration_revue": { "type": "string", "format": "date" }
+  }
+}

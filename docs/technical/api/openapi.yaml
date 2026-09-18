@@ -1,0 +1,149 @@
+openapi: 3.1.0
+info:
+  title: IAA — ITIL Autonomous Incident Analyzer
+  version: 0.1.0
+  description: >
+    Contrats API du socle. Aucune route n'expose un vocabulaire client :
+    la contextualisation passe par les packs. Toute route a effet de bord
+    exige un verdict de superviseur valide et non expire.
+servers:
+  - url: https://{host}/api/v1
+    variables: { host: { default: iaa.internal } }
+
+tags:
+  - { name: ingestion,    description: Reception et normalisation }
+  - { name: pipeline,     description: Etat et progression du traitement }
+  - { name: console,      description: Console technicien — propositions et validation }
+  - { name: gouvernance,  description: Packs, curseur d'autonomie, seuils }
+  - { name: connaissance, description: Corpus, promotion, revue }
+  - { name: audit,        description: Trace rejouable }
+  - { name: evaluation,   description: Banc d'evaluation et KPI }
+
+paths:
+  /tickets:
+    post:
+      tags: [ingestion]
+      summary: Soumettre un ticket brut issu d'un canal
+      description: Idempotent sur (systeme, identifiant_externe).
+      responses:
+        "202": { description: Accepte, traitement asynchrone }
+        "409": { description: Deja recu — retourne l'execution existante }
+        "422": { description: Payload non conforme au schema de canal }
+
+  /tickets/{ticket_id}:
+    get:
+      tags: [pipeline]
+      summary: Etat canonique et position dans la machine a etats
+      responses:
+        "200": { description: Ticket canonique + etat + historique de transitions }
+
+  /tickets/{ticket_id}/propositions:
+    get:
+      tags: [console]
+      summary: Propositions en attente pour ce ticket
+      description: >
+        Chaque proposition porte sa confiance, sa justification, ses sources
+        et le verdict du superviseur. Une proposition sans source est marquee
+        non actionnable.
+      responses:
+        "200": { description: Liste de propositions }
+
+  /propositions/{proposition_id}/accepter:
+    post:
+      tags: [console]
+      summary: Accepter une proposition (validation en un clic)
+      description: >
+        Exige un verdict AUTORISE ou VALIDATION_HUMAINE non expire.
+        L'identite du validateur est inscrite dans la trace.
+      responses:
+        "200": { description: Action executee ou preparee }
+        "403": { description: Verdict absent, expire ou bloquant }
+        "409": { description: Proposition deja traitee }
+
+  /propositions/{proposition_id}/contester:
+    post:
+      tags: [console]
+      summary: Rejeter ou corriger une proposition
+      description: >
+        Alimente le taux d'accord (ENF-05) et le pilotage du curseur.
+        La correction apportee est enregistree comme annotation de reference.
+      responses:
+        "200": { description: Contestation enregistree }
+
+  /gouvernance/autonomie:
+    get:
+      tags: [gouvernance]
+      summary: Niveaux d'autonomie par couple categorie x action
+      responses: { "200": { description: Matrice courante avec metriques associees } }
+    patch:
+      tags: [gouvernance]
+      summary: Modifier un niveau d'autonomie
+      description: >
+        Une MONTEE exige les 5 conditions cumulatives (200 decisions, 30 jours,
+        95 pour cent d'accord, zero incident, double validation) — sinon 412.
+        Une DESCENTE est toujours acceptee et peut aussi etre declenchee par le systeme.
+      responses:
+        "200": { description: Niveau modifie, evenement d'audit emis }
+        "412": { description: Conditions de montee non reunies — detail par condition }
+
+  /gouvernance/packs:
+    get:
+      tags: [gouvernance]
+      summary: Packs charges, versions et resultat de la fusion
+      responses: { "200": { description: Pack client, pack projet, conflits resolus } }
+
+  /connaissance/documents:
+    get:
+      tags: [connaissance]
+      summary: Rechercher dans le corpus
+      parameters:
+        - { name: etage, in: query, schema: { enum: [indicatif, normatif] },
+            description: "Un appelant a effet de bord ne peut interroger que 'normatif'." }
+      responses: { "200": { description: Resultats avec sources, versions et scores } }
+
+  /connaissance/brouillons/{brouillon_id}/promouvoir:
+    post:
+      tags: [connaissance]
+      summary: Promouvoir un brouillon en corpus normatif
+      description: >
+        Verifie les 5 conditions : 3 tickets concordants, une source par etape,
+        approbateur nomme, actions presentes en liste blanche, date d'expiration fixee.
+      responses:
+        "201": { description: Publie, versionne, signe }
+        "412": { description: Condition de promotion non remplie }
+
+  /audit/traces/{execution_id}:
+    get:
+      tags: [audit]
+      summary: Trace complete d'une decision
+      responses: { "200": { description: Entrees, versions, decision, verdict, action, validateur } }
+
+  /audit/traces/{execution_id}/rejouer:
+    post:
+      tags: [audit]
+      summary: Rejouer une decision a l'identique (EF-09, ENF-02)
+      description: Retourne la decision reconstituee et le diff avec la decision d'origine.
+      responses:
+        "200": { description: Rejeu conforme — diff vide }
+        "409": { description: Rejeu non conforme — diff detaille, incident de tracabilite }
+
+  /evaluation/runs:
+    post:
+      tags: [evaluation]
+      summary: Lancer le banc d'evaluation sur un jeu annote
+      responses: { "202": { description: Run lance } }
+    get:
+      tags: [evaluation]
+      summary: Historique des runs — confusion, calibration, contexte manquant
+      responses: { "200": { description: Liste des runs et de leurs metriques } }
+
+  /kpi:
+    get:
+      tags: [evaluation]
+      summary: KPI metier, IA et exploitation
+      responses: { "200": { description: Valeurs courantes, cibles, seuils d'alerte } }
+
+components:
+  securitySchemes:
+    oidc: { type: openIdConnect, openIdConnectUrl: https://iam.internal/.well-known/openid-configuration }
+security: [ { oidc: [] } ]

@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://iaa.core/schemas/pack-client/v1.0.0",
+  "title": "PackClient",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "identifiant", "version", "matrice_priorite",
+               "politique_securite", "souverainete", "retention"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "identifiant": { "type": "string" },
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "vocabulaire": { "type": "object", "description": "Terme canonique -> terme terrain." },
+    "cartographie_applicative": {
+      "type": "array",
+      "items": { "type": "object", "required": ["application", "groupe_support"],
+                 "properties": { "application": {"type":"string"}, "alias": {"type":"array","items":{"type":"string"}},
+                                 "groupe_support": {"type":"string"}, "criticite": {"enum":["vitale","forte","standard"]} } }
+    },
+    "matrice_priorite": {
+      "type": "array", "minItems": 9, "maxItems": 9,
+      "description": "impact x urgence -> priorite. Issue du contrat de service, jamais devinee.",
+      "items": { "type": "object", "required": ["impact", "urgence", "priorite"],
+                 "properties": { "impact": {"enum":["etendu","significatif","limite"]},
+                                 "urgence": {"enum":["haute","moyenne","basse"]},
+                                 "priorite": {"enum":["P1","P2","P3","P4"]} } }
+    },
+    "politique_securite": {
+      "type": "object", "additionalProperties": false,
+      "required": ["niveau_autonomie_max", "seuil_confiance_minimal"],
+      "properties": {
+        "niveau_autonomie_max": { "type": "integer", "minimum": 0, "maximum": 4,
+          "description": "Plafond. Un pack projet ne peut que descendre sous cette valeur." },
+        "seuil_confiance_minimal": { "type": "number", "minimum": 0, "maximum": 1 },
+        "categories_interdites_automatisation": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "souverainete": {
+      "type": "object", "additionalProperties": false,
+      "required": ["region_traitement", "region_index", "classes_modeles_autorisees"],
+      "properties": {
+        "region_traitement": { "type": "string" },
+        "region_index": { "type": "string" },
+        "classes_modeles_autorisees": {
+          "type": "array", "minItems": 1,
+          "items": { "type": "object", "required": ["classe", "fournisseurs_autorises", "hebergement"],
+                     "properties": { "classe": {"enum":["S","M","L"]},
+                                     "fournisseurs_autorises": {"type":"array","items":{"type":"string"}},
+                                     "hebergement": {"enum":["zone_confiance","auto_heberge"]} } }
+        }
+      }
+    },
+    "retention": {
+      "type": "object", "additionalProperties": false,
+      "required": ["trace_audit_jours", "ticket_canonique_jours"],
+      "properties": {
+        "trace_audit_jours": { "type": "integer", "minimum": 1 },
+        "ticket_canonique_jours": { "type": "integer", "minimum": 1 },
+        "base_legale": { "type": "string" }
+      }
+    }
+  }
+}

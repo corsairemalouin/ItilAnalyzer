@@ -1,0 +1,51 @@
+@startuml 03-sequence-triage
+title Sequence — Chemin triage (budget ENF-03 : < 60 s)
+skinparam shadowing false
+autonumber
+
+participant "Canal" as C
+participant "Intake (S)" as I
+participant "Machine a etats" as M
+participant "Recherche hybride" as R
+participant "Triage (M)" as T
+participant "Superviseur" as S
+participant "Trace" as TR
+participant "Console technicien" as UI
+
+C -> I : message brut
+activate I
+I -> I : anonymisation AVANT tout appel
+I -> I : normalisation, deduplication,\nscore de completude
+I --> M : ticket-canonique.json
+deactivate I
+
+alt completude < 0.5 (Porte 1)
+  M -> S : 3 questions au demandeur
+  S -> TR : trace
+  S --> C : questions (mention IA)
+else completude >= 0.5
+  M -> R : recherche bornee au pack\net a l'etage autorise
+  R --> M : candidats + sources + versions
+  M -> T : ticket + taxonomie + chemin declare
+  activate T
+  T --> M : decision-triage.json\n(confiance, justification, sources)
+  deactivate T
+
+  alt confiance < seuil ET cas limite
+    M -> T : escalade classe L — UNE SEULE FOIS
+  end
+
+  M -> S : sortie a superviser
+  activate S
+  S -> S : 7 controles
+  S -> TR : trace ecrite AVANT effet de bord
+  alt verdict = AUTORISE et niveau >= 3
+    S --> M : execution autorisee
+  else verdict = VALIDATION_HUMAINE (Porte 2/4)
+    S --> UI : proposition affichee, contestable
+  else verdict = BLOQUE
+    S --> UI : motif lisible
+  end
+  deactivate S
+end
+@enduml

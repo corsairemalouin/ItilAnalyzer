@@ -1,0 +1,51 @@
+@startuml 02-conteneurs-c2
+title IAA — Conteneurs (C2)
+skinparam shadowing false
+skinparam componentStyle rectangle
+
+package "Zone applicative" {
+  [API FastAPI] as API
+  [Moteur : machine a etats\n+ registre d'agents] as Engine
+  [Superviseur\n7 controles — fail-closed] as Sup #Pink
+  [Moteur de fusion de packs] as Packs
+  [Workers asynchrones\nclasse L, ingestion, evaluation] as Workers
+  [Frontend Angular\nconsole technicien] as UI
+}
+
+package "Zone de donnees" {
+  database "PostgreSQL\netat, packs, gouvernance" as DB
+  database "Index hybride\nlexical + vectoriel,\ncloisonne par pack" as Index
+  database "Trace d'audit\nappend-only" as Trace #LightYellow
+  database "Coffre-fort de secrets" as Vault
+}
+
+package "Ports & adaptateurs" {
+  [ITSMPort] as PITSM
+  [LLMPort] as PLLM
+  [SearchPort] as PSearch
+  [DocumentPort] as PDoc
+  [IAMPort] as PIAM
+}
+
+UI --> API
+API --> Engine
+Engine --> Sup : toute sortie\navant effet de bord
+Sup --> Trace : ecrit AVANT l'effet
+Sup --> PITSM : uniquement si verdict AUTORISE
+Engine --> Packs
+Engine --> PLLM
+Engine --> PSearch
+Workers --> PLLM
+Workers --> Index
+PSearch --> Index
+Packs --> DB
+Engine --> DB
+PITSM ..> Vault
+PLLM ..> Vault
+
+note right of Sup
+  Les adaptateurs a effet de bord
+  refusent tout appel sans verdict
+  valide et non expire.
+end note
+@enduml

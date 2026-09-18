@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://iaa.core/contracts/decision-triage/v1.0.0",
+  "title": "DecisionTriage",
+  "description": "Sortie de l'agent Triage. Priorite calculee, jamais devinee.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "type", "categorie", "impact", "urgence", "priorite",
+               "niveau_cible", "groupe_support", "mal_dirige", "confiance", "justification", "sources"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "type": { "enum": ["incident", "demande", "probleme"], "description": "Noyau ITIL retenu (DEC-02)." },
+    "categorie": { "type": "string", "pattern": "^[a-z0-9]+(\\.[a-z0-9_]+)*$" },
+    "chemin_declare": { "type": ["string", "null"] },
+    "mal_dirige": { "type": "boolean", "description": "Ecart entre chemin declare et contenu reel (EF-10)." },
+    "impact": { "enum": ["etendu", "significatif", "limite"] },
+    "urgence": { "enum": ["haute", "moyenne", "basse"] },
+    "priorite": { "enum": ["P1", "P2", "P3", "P4"], "description": "Calculee par matrice impact x urgence du pack client." },
+    "niveau_cible": { "enum": ["N1", "N2", "N3"] },
+    "groupe_support": { "type": "string", "minLength": 1 },
+    "contexte_manquant": { "type": "array", "items": { "type": "string" } },
+    "confiance": { "type": "number", "minimum": 0, "maximum": 1 },
+    "justification": { "type": "string", "minLength": 1 },
+    "sources": { "type": "array", "items": { "$ref": "https://iaa.core/contracts/source/v1.0.0" } }
+  }
+}

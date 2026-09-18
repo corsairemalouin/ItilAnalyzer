@@ -1,0 +1,37 @@
+@startuml 04-etats-ticket
+title Cycle de vie du ticket canonique
+skinparam shadowing false
+
+[*] --> RECU
+RECU --> NORMALISE : Intake
+NORMALISE --> EN_ATTENTE_DEMANDEUR : completude < 0.5
+EN_ATTENTE_DEMANDEUR --> NORMALISE : reponse recue
+NORMALISE --> TRIE : decision-triage validee
+TRIE --> EN_RESOLUTION_N1 : niveau_cible = N1\net runbook normatif applicable
+TRIE --> EN_INVESTIGATION_N2 : niveau_cible = N2
+EN_RESOLUTION_N1 --> RESOLU_PROPOSE : plan-action supervise
+EN_RESOLUTION_N1 --> EN_INVESTIGATION_N2 : aucun runbook applicable
+EN_INVESTIGATION_N2 --> EN_ESCALADE_N3 : diagnostic non concluant\nou hors catalogue N2
+EN_INVESTIGATION_N2 --> RESOLU_PROPOSE : diagnostic concluant
+EN_ESCALADE_N3 --> TRANSMIS : dossier depose,\nidentifiants externes conserves
+RESOLU_PROPOSE --> CLOS : VALIDATION HUMAINE UNIQUEMENT
+TRANSMIS --> [*]
+CLOS --> [*]
+
+state BLOQUE_SUPERVISEUR #Pink
+state EN_FILE_MODE_DEGRADE #LightGray
+
+NORMALISE --> BLOQUE_SUPERVISEUR : court-circuit permanent
+TRIE --> BLOQUE_SUPERVISEUR
+EN_RESOLUTION_N1 --> BLOQUE_SUPERVISEUR
+BLOQUE_SUPERVISEUR --> TRIE : reprise humaine
+
+NORMALISE --> EN_FILE_MODE_DEGRADE : composant critique indisponible
+EN_FILE_MODE_DEGRADE --> NORMALISE : service retabli
+
+note right of CLOS
+  Garde-fou absolu :
+  aucune cloture autonome,
+  quel que soit le niveau.
+end note
+@enduml

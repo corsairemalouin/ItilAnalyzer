@@ -1,0 +1,37 @@
+@startuml 01-contexte-c1
+title IAA — Diagramme de contexte (C1)
+skinparam shadowing false
+actor "Technicien N1/N2" as Tech
+actor "Expert N3" as Expert
+actor "Demandeur" as Demandeur
+actor "Responsable de service" as Resp
+actor "Auditeur / RSSI" as Audit
+
+rectangle "IAA\nCore Platform + Context Packs" as IAA #LightBlue
+
+rectangle "ITSM\n(via adaptateur)" as ITSM
+rectangle "Base documentaire\n(via adaptateur)" as GED
+rectangle "Annuaire d'entreprise" as IAM
+rectangle "Supervision / logs" as Logs
+rectangle "Fournisseur de modeles\n(zone de confiance)" as LLM
+
+Demandeur --> ITSM : ouvre un ticket
+ITSM --> IAA : notification (canal abstrait)
+IAA --> ITSM : commentaire, reaffectation\n(liste blanche uniquement)
+IAA --> Tech : propositions sourcees,\nvalidation en un clic
+Tech --> IAA : accepte / conteste
+IAA --> Expert : dossier d'escalade complet
+IAA --> Demandeur : reponse avec mention IA obligatoire
+Resp --> IAA : pilote le curseur d'autonomie
+Audit --> IAA : consulte et rejoue la trace
+IAA --> GED : lecture (corpus indicatif)
+IAA --> IAM : identite et droits
+IAA --> Logs : lecture seule (investigation N2)
+IAA --> LLM : appels anonymises, classes S/M/L
+
+note bottom of IAA
+  Le socle ne connait ni le client ni l'ITSM.
+  Seuls les packs connaissent le client.
+  Seul l'adaptateur connait l'outil.
+end note
+@enduml

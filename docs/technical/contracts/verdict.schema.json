@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://iaa.core/contracts/verdict/v1.0.0",
+  "title": "Verdict",
+  "description": "Sortie du Superviseur. Aucun effet de bord sans verdict valide et non expire.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "verdict", "controles", "motif", "horodatage", "expiration", "contexte_versions"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "verdict": { "enum": ["AUTORISE", "BLOQUE", "VALIDATION_HUMAINE", "MODE_DEGRADE"] },
+    "controles": {
+      "type": "array", "minItems": 7, "maxItems": 7,
+      "description": "Les sept controles, dans l'ordre. Tous evalues, meme apres un echec.",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["numero", "nom", "resultat"],
+        "properties": {
+          "numero": { "type": "integer", "minimum": 1, "maximum": 7 },
+          "nom": { "enum": ["schema_valide", "garde_fous", "liste_blanche", "seuil_confiance",
+                            "niveau_autonomie", "sla_restant", "injection"] },
+          "resultat": { "enum": ["OK", "ECHEC", "DEGRADE", "NON_APPLICABLE"] },
+          "valeur_observee": {},
+          "valeur_attendue": {},
+          "detail": { "type": "string" }
+        }
+      }
+    },
+    "motif": { "type": "string", "minLength": 1, "description": "Lisible par un humain. Un blocage silencieux est un defaut." },
+    "court_circuit": { "type": ["string", "null"], "enum": ["securite", "confidentiel", "impact_vital", "injection", null] },
+    "horodatage": { "type": "string", "format": "date-time" },
+    "expiration": { "type": "string", "format": "date-time" },
+    "contexte_versions": {
+      "type": "object", "additionalProperties": false,
+      "required": ["socle", "pack_client", "pack_projet", "registre_prompts", "modele"],
+      "properties": {
+        "socle": { "type": "string" }, "pack_client": { "type": "string" },
+        "pack_projet": { "type": "string" }, "registre_prompts": { "type": "string" },
+        "modele": { "type": "string", "description": "Identifiant ET version exacte." }
+      }
+    }
+  }
+}
