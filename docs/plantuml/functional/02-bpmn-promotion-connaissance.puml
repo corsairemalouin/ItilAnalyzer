@@ -1,0 +1,38 @@
+@startuml 02-bpmn-promotion-connaissance
+title Processus BPMN — Promotion de connaissance (etage 1 -> etage 2)
+skinparam shadowing false
+skinparam activity { BackgroundColor<<humain>> #FFE8CC }
+
+start
+:Collecte (historique, doc, logs);
+:Anonymisation AVANT stockage;
+if (Secret detecte ?) then (oui)
+  :Document rejete, proprietaire notifie;
+  stop
+endif
+:Clustering par similarite de cause;
+if (Au moins 3 tickets concordants ?) then (non)
+  :Pas de brouillon genere;
+  stop
+endif
+:Synthese LLM (classe L)\nbrouillon avec citation par etape;
+#FFE8CC:Revue humaine\n(technicien nomme);<<humain>>
+if (Decision) then (rejette)
+  stop
+elseif (corrige) then (oui)
+  :Brouillon mis a jour;
+endif
+if (Toutes actions citees en liste blanche ?) then (non)
+  :Runbook reste "proposition";
+  stop
+endif
+:Publication : version, signature,\ndate, date d'expiration de revue;
+note right: Etage 2 — usage autorise :\nresolution N1, action a effet de bord
+
+:Ingestion continue / usage;
+if (Date d'expiration atteinte sans revue ?) then (oui)
+  :Retour automatique a l'etage 1;
+  stop
+endif
+stop
+@enduml

@@ -1,0 +1,38 @@
+@startuml 03-bpmn-changement-autonomie
+title Processus BPMN — Changement de niveau d'autonomie
+skinparam shadowing false
+skinparam activity { BackgroundColor<<humain>> #FFE8CC BackgroundColor<<auto>> #CCE5FF }
+
+start
+:Systeme calcule en continu,\npar categorie x action :\ndecisions, anciennete, accord, incidents;<<auto>>
+
+fork
+  if (Accord < 90% sur 7 jours\nglissants ?) then (oui)
+    :DESCENTE automatique;<<auto>>
+    :Trace : auteur=systeme,\nvaleur precedente, motif;
+    stop
+  endif
+fork again
+  if (Incident impute au pipeline ?) then (oui)
+    :DESCENTE automatique;<<auto>>
+    stop
+  endif
+fork again
+  if (Changement modele/pack\nsans reevaluation ?) then (oui)
+    :DESCENTE automatique\nsur categories concernees;<<auto>>
+    stop
+  endif
+fork again
+  if (200 decisions ET 30 jours\nET accord >= 95% ET zero\nincident grave ?) then (oui)
+    #FFE8CC:Proposition de MONTEE\nsoumise;<<humain>>
+    if (Validation conjointe\nservice + client ?) then (oui)
+      :Niveau modifie;
+      :Trace de l'evenement;
+    else (non)
+      :Niveau inchange;
+    endif
+    stop
+  endif
+end fork
+stop
+@enduml

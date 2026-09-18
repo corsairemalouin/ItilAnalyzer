@@ -1,0 +1,65 @@
+@startuml 01-bpmn-incident
+title Processus BPMN — Gestion des incidents (chemin nominal)
+skinparam shadowing false
+skinparam activity {
+  BackgroundColor<<humain>> #FFE8CC
+  BackgroundColor<<bloque>> #FFCCCC
+}
+
+start
+:Ticket recu (canal abstrait);
+:Intake : anonymiser, normaliser,\nscorer completude;
+
+if (Marqueur de court-circuit ?) then (oui)
+  #FFCCCC:BLOQUE_SUPERVISEUR;<<bloque>>
+  :Reprise humaine immediate;<<humain>>
+  stop
+endif
+
+if (Completude >= 0.5 ?) then (non)
+  :Generer au plus 3 questions;
+  #FFE8CC:Envoyer au demandeur\n(mention IA);<<humain>>
+  stop
+endif
+
+:Triage : categorie, impact,\nurgence, priorite, niveau cible;
+
+if (Categorie sure ET confiance >= seuil ?) then (non)
+  #FFE8CC:Proposition affichee\nau technicien;<<humain>>
+  if (Technicien valide ?) then (oui)
+  else (non/corrige)
+    :Contestation enregistree\n(annotation de reference);
+    stop
+  endif
+endif
+
+if (Runbook normatif applicable ?) then (non)
+  :Investigation N2\n(lecture seule);
+  if (Diagnostic concluant ?) then (non)
+    :Preparation dossier N3;
+    :Depot cote systeme N3\n(identifiants conserves);
+    stop
+  else (oui)
+    #FFE8CC:Technicien N2 execute;<<humain>>
+    stop
+  endif
+endif
+
+:Resolveur N1 : plan d'action\nsur liste blanche;
+
+if (Action reversible ET en liste blanche ?) then (non)
+  #FFE8CC:Validation humaine\nen un clic;<<humain>>
+endif
+
+:Superviseur : 7 controles;
+
+if (Verdict = AUTORISE ?) then (oui)
+  :Execution;
+  :Reponse au demandeur\n(mention IA);
+else (BLOQUE / DEGRADE)
+  #FFCCCC:Blocage motive;<<bloque>>
+  #FFE8CC:Reprise humaine;<<humain>>
+endif
+
+stop
+@enduml

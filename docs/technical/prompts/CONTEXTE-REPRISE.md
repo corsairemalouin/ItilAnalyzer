@@ -93,6 +93,10 @@ ADR-009 STACK : Python 3.12 / FastAPI, stack unique, pour le moteur métier, les
         compétences Python internes. Le risque R-12 associé est clos.)
 ADR-013 Mono-tenant en v0 (isolation physique), cloisonnement logique par pack néanmoins
         implémenté et testé.
+NFR-01  Fenêtre de service = heures ouvrées (Q-10, close). Hors fenêtre : ingestion,
+        triage et préparation continuent 24/7 (sans effet de bord) ; l'exécution
+        automatique niveau 3-4 est SUSPENDUE par défaut (personne pour réagir à une
+        anomalie), valeur par défaut modifiable par pack client.
 
 # GARDE-FOUS ABSOLUS — non désactivables par un pack
 
@@ -185,7 +189,9 @@ Q-04 Accès en lecture aux logs applicatifs : périmètre et délai ?
 Q-05 Qui est le propriétaire nommé du corpus normatif, avec quel temps alloué ?
 Q-06 [BLOQUANT] Durée de rétention de la trace d'audit et base légale du traitement ?
 Q-09 Volumétrie documentaire à indexer ?
-Q-10 Cible de disponibilité et plage de service ?
+Q-10 [CLOSE] Plage de service : heures ouvrées uniquement (lun-ven, 8h-19h par défaut,
+     paramètre du pack client). Ferme NFR-01 ; introduit la suspension par défaut de
+     l'exécution automatique niveau 3-4 hors fenêtre (8e cas de dégradation superviseur).
 Q-12 Nombre de clients et projets à 12 / 24 mois ?
 Q-13 Budget cible par ticket et enveloppe mensuelle ?
 Q-15 Délai contraint sur le premier jalon démontrable ?
@@ -196,24 +202,28 @@ FAIT :
   - DAv0 (fourni, figé) — besoin, 3 arbitrages, archi logique, superviseur, autonomie,
     archi logicielle, intégration, données, observabilité, trajectoire en 4 lots
   - PLAN-00 — plan détaillé des livrables et repository cible, 8 phases, portes GATE-0→7
-  - PLAN-00-A1 — dimensionnement, ADR-009, comparaison d'approches
+  - PLAN-00-A1 — dimensionnement, ADR-009 (révisé Python), comparaison d'approches
   - DAv1 chapitres 01 à 17 (v0.1, pour revue)
   - Registre des 18 ADR avec décisions synthétiques
   - 8 contrats JSON Schema (source, ticket-canonique, decision-triage, categorie-n2,
     diagnostic, plan-action, dossier-escalade, verdict)
   - 2 schémas de packs (client, projet)
   - OpenAPI 3.1 du socle
-  - 4 diagrammes PlantUML (contexte C1, conteneurs C2, séquence triage, états du ticket)
-  - Matrice de traçabilité DEC/EF/ENF → chapitres → ADR → contrats
+  - 7 diagrammes PlantUML (contexte C1, conteneurs C2, séquence triage, états ticket,
+    BPMN incident, BPMN promotion connaissance, BPMN changement autonomie)
+  - Phase 2 complète : F-01 à F-10 (besoins, use cases, user stories, ITIL, BPMN,
+    domain model, event storming, dictionnaire métier, 31 règles métier, RACI)
+  - Phase 3 complète : NFR-01 à NFR-13 chiffrées (~72 exigences), catalogue de 25 KPI
+  - Q-10 close (heures ouvrées) ; décision associée : suspension par défaut de
+    l'exécution automatique niveau 3-4 hors fenêtre de service
+  - Matrice de traçabilité DEC/EF/ENF → chapitres → ADR → contrats → UC → US → NFR
 
 RESTE À FAIRE :
-  - GATE-1 : revue d'architecture du DAv1
-  - Versions Draw.io (XML) de tous les diagrammes — exigence de triple format
-  - Phase 2 : analyse fonctionnelle (besoins, UC, US, ITIL, BPMN, domain model,
-    event storming, dictionnaire métier, règles métier, RACI)
-  - Phase 3 : exigences non fonctionnelles chiffrées + catalogue KPI
-  - Phase 4 : spécifications détaillées, AsyncAPI, séquences complètes, plan de tests,
-    plan d'évaluation, registre de prompts
+  - GATE-1, GATE-2, GATE-3 : revues formelles (contenu prêt, validation à obtenir)
+  - Versions Draw.io (XML) de tous les diagrammes — exigence de triple format, différée
+  - Phase 4 : spécifications détaillées (SFD/STD), AsyncAPI, séquences complètes,
+    plan de tests, plan d'évaluation, registre de prompts — à produire par incréments
+    alignés sur les 4 lots du DAv0
   - GATE-4 puis implémentation
 
 # COMMENT JE VEUX QUE TU TRAVAILLES

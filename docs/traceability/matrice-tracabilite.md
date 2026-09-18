@@ -44,6 +44,48 @@
 | ENF-09 Portabilité fournisseur | couche d'abstraction | 15 | Ports + test de réversibilité |
 | ENF-10 Dégradation maîtrisée | fail-closed | 06.4 | Modes dégradés par composant |
 
+## Phase 2 — Couverture fonctionnelle (GATE-2)
+
+| Livrable | Fichier | Couvre |
+|---|---|---|
+| F-01 Besoins métier | `functional/01-besoins-metier.md` | BM-01 à BM-17, dérivés de DAv0 §Besoin métier |
+| F-02 Use cases | `functional/02-use-cases.md` | UC-01 à UC-10, couvrent EF-01 à EF-10 (table de couverture en fin de document) |
+| F-03 User stories | `functional/03-user-stories.md` | US-101 à US-901, 9 épopées, chaque UC couvert par au moins 2 US avec critères Gherkin |
+| F-04 Processus ITIL | `functional/04-itil-processus.md` | DEC-02, table de correspondance ITIL ↔ terrain |
+| F-05 BPMN | `functional/05-bpmn.md` + `plantuml/functional/01-03` | Processus incident, promotion, autonomie |
+| F-06 Domain model | `functional/06-domain-model.md` | 9 contextes bornés, agrégats des 5 contextes structurants |
+| F-07 Event storming | `functional/07-event-storming.md` | 3 flux, 3 points chauds identifiés, base du catalogue AsyncAPI (S-04) |
+| F-08 Dictionnaire métier | `functional/08-dictionnaire-metier.md` | 26 termes canoniques, fait autorité sur le vocabulaire |
+| F-09 Règles métier | `functional/09-regles-metier.md` | BR-01 à BR-31, chacune rattachée à un UC et une exigence amont |
+| F-10 RACI | `functional/10-raci.md` | 21 activités, introduit le rôle Propriétaire du corpus (répond à Q-05 côté gouvernance) |
+
+**Critère de sortie GATE-2** : chaque EF est couverte par au moins un UC (vérifié) ; chaque UC par au moins une US (vérifié) ; chaque règle métier par un UC amont (vérifié). Reste à produire avant clôture effective de la porte : les cas de test associés à chaque BR (S-13, phase 4) — la couverture fonctionnelle est complète, la couverture de test ne l'est pas encore, ce qui est attendu à ce stade.
+
+**Point chaud non résolu, à trancher avant S-01** : stabilité du score de complétude en cas de complément asynchrone du ticket (F-07). N'est bloquant ni pour GATE-2 ni pour la suite immédiate, mais doit être tranché avant la rédaction de la spécification fonctionnelle détaillée de l'Intake.
+
+## Phase 3 — Exigences non fonctionnelles chiffrées (GATE-3)
+
+| Chapitre NFR | Fichier | Nombre d'exigences chiffrées | Statut |
+|---|---|---|---|
+| NFR-01 Disponibilité | `nfr/01-disponibilite-performance-scalabilite.md` | 6 | Complet — ferme Q-10 |
+| NFR-02 Performance | idem | 7 | Complet sauf NFR-02.7 (budget/ticket) |
+| NFR-03 Scalabilité | idem | 4 | Complet, requalifié (débit non dimensionnant) |
+| NFR-04 Sécurité | `nfr/02-securite-souverainete-conformite.md` | 10 | Complet |
+| NFR-11 Souveraineté | idem | 5 | 2 sur 5 bloquées par Q-03 |
+| NFR-13 Conformité | idem | 8 | 2 sur 8 bloquées par Q-06, 2 hors périmètre technique |
+| NFR-05 Observabilité | `nfr/03-observabilite-auditabilite.md` | 5 | Complet |
+| NFR-06 Auditabilité | idem | 7 | 1 sur 7 en valeur par défaut proposée (Q-06) |
+| NFR-07 Résilience | `nfr/04-resilience-maintenabilite-portabilite.md` | 5 | Complet |
+| NFR-08 Maintenabilité | idem | 6 | Complet |
+| NFR-09 Portabilité | idem | 3 | Complet |
+| NFR-10 Réversibilité | idem | 5 | Complet |
+| NFR-12 Qualité IA | `nfr/05-qualite-ia.md` | 11 | Complet |
+| Catalogue KPI | `nfr/kpi/catalogue-kpi.md` | 25 KPI | Complet, source unique pour les dashboards |
+
+**Décision actée en phase 3, absente du DAv0** : hors fenêtre de service (heures ouvrées, Q-10), l'exécution automatique de niveau 3-4 est suspendue par défaut ; seules l'ingestion, le triage et la préparation continuent 24/7, sans effet de bord. Un 8ᵉ cas de dégradation contextuelle s'ajoute au superviseur (NFR-01, DAv1-06.4).
+
+**Critère de sortie GATE-3** : sur ~72 exigences chiffrées, 4 restent partiellement bloquées par Q-03 ou Q-06, avec repli explicite dans chaque cas (fail-closed pour Q-03, valeur par défaut de 3 ans proposée pour Q-06). Aucune exigence n'est laissée sans méthode de mesure.
+
 ## Questions ouvertes bloquantes
 
 | Q | Bloque | Effet si non tranchée |
